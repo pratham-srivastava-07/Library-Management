@@ -3,6 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { BookOpen, Users, PlusCircle, ArrowLeftRight } from 'lucide-react';
 
 // TypeScript interfaces
 interface Book {
@@ -152,113 +156,136 @@ const LibraryManagement: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold mb-6">Library Management System</h1>
-      
-      {error && (
-        <div className="mb-6 p-4 border border-red-500 bg-red-50 text-red-700 rounded-md">
-          {error}
-        </div>
-      )}
-      {isLoading ? (
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <h2 className="text-xl font-semibold">Add New Book</h2>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleAddBook} className="space-y-4">
-                  <Input
-                    placeholder="Title"
-                    value={newBook.title}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                      setNewBook({ ...newBook, title: e.target.value })}
-                  />
-                  <Input
-                    placeholder="Author"
-                    value={newBook.author}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                      setNewBook({ ...newBook, author: e.target.value })}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Total Copies"
-                    value={newBook.total_copies}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                      setNewBook({ ...newBook, total_copies: parseInt(e.target.value) })}
-                  />
-                  <Button type="submit">Add Book</Button>
-                </form>
-              </CardContent>
-            </Card>
+    <div className="min-h-screen bg-gradient-to-br from-blue-100 to-purple-100 p-4 sm:p-6 lg:p-8">
+      <Card className="max-w-6xl mx-auto shadow-lg">
+        <CardHeader className="bg-primary text-primary-foreground p-6 rounded-t-lg">
+          <h1 className="text-3xl font-bold flex items-center">
+            <BookOpen className="mr-2" /> Library Management System
+          </h1>
+        </CardHeader>
+        <CardContent className="p-6">
+          {error && (
+            <div className="mb-6 p-4 border border-red-500 bg-red-50 text-red-700 rounded-md">
+              {error}
+            </div>
+          )}
+          {isLoading ? (
+            <div className="flex items-center justify-center p-8">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+          ) : (
+            <Tabs defaultValue="books" className="space-y-6">
+              <TabsList className="grid w-full grid-cols-2 lg:w-auto">
+                <TabsTrigger value="books" className="flex items-center"><BookOpen className="mr-2" /> Books</TabsTrigger>
+                <TabsTrigger value="members" className="flex items-center"><Users className="mr-2" /> Members</TabsTrigger>
+              </TabsList>
 
-            <Card>
-              <CardHeader>
-                <h2 className="text-xl font-semibold">Add New Member</h2>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleAddMember} className="space-y-4">
-                  <Input
-                    placeholder="Name"
-                    value={newMember.name}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                      setNewMember({ ...newMember, name: e.target.value })}
-                  />
-                  <Input
-                    placeholder="Email"
-                    type="email"
-                    value={newMember.email}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
-                      setNewMember({ ...newMember, email: e.target.value })}
-                  />
-                  <Button type="submit">Add Member</Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
+              <TabsContent value="books" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <h2 className="text-xl font-semibold flex items-center"><PlusCircle className="mr-2" /> Add New Book</h2>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleAddBook} className="space-y-4">
+                      <Input
+                        placeholder="Title"
+                        value={newBook.title}
+                        onChange={(e) => setNewBook({ ...newBook, title: e.target.value })}
+                      />
+                      <Input
+                        placeholder="Author"
+                        value={newBook.author}
+                        onChange={(e) => setNewBook({ ...newBook, author: e.target.value })}
+                      />
+                      <Input
+                        type="number"
+                        placeholder="Total Copies"
+                        value={newBook.total_copies}
+                        onChange={(e) => setNewBook({ ...newBook, total_copies: parseInt(e.target.value) })}
+                      />
+                      <Button type="submit" className="w-full">Add Book</Button>
+                    </form>
+                  </CardContent>
+                </Card>
 
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <h2 className="text-xl font-semibold">Books</h2>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {books.map((book) => (
-                    <div key={book.book_id} className="p-4 border rounded">
-                      <h3 className="font-semibold">{book.title}</h3>
-                      <p>Author: {book.author}</p>
-                      <p>Available: {book.available_copies}/{book.total_copies}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                <Card>
+                  <CardHeader>
+                    <h2 className="text-xl font-semibold flex items-center"><BookOpen className="mr-2" /> Book Inventory</h2>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[400px] w-full rounded-md border p-4">
+                      <div className="space-y-4">
+                        {books.map((book) => (
+                          <Card key={book.book_id} className="p-4">
+                            <h3 className="font-semibold text-lg">{book.title}</h3>
+                            <p className="text-sm text-muted-foreground">Author: {book.author}</p>
+                            <div className="flex justify-between items-center mt-2">
+                              <Badge variant={book.available_copies > 0 ? "success" : "destructive"}>
+                                Available: {book.available_copies}/{book.total_copies}
+                              </Badge>
+                              <Button size="sm" variant="outline" className="flex items-center">
+                                <ArrowLeftRight className="mr-2 h-4 w-4" /> Borrow/Return
+                              </Button>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              </TabsContent>
 
-            <Card>
-              <CardHeader>
-                <h2 className="text-xl font-semibold">Members</h2>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {members.map((member) => (
-                    <div key={member.id} className="p-4 border rounded">
-                      <h3 className="font-semibold">{member.name}</h3>
-                      <p>Email: {member.email}</p>
-                      <p>Fine Amount: ${member.fine_amount}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </>
-      )}
+              <TabsContent value="members" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <h2 className="text-xl font-semibold flex items-center"><PlusCircle className="mr-2" /> Add New Member</h2>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleAddMember} className="space-y-4">
+                      <Input
+                        placeholder="Name"
+                        value={newMember.name}
+                        onChange={(e) => setNewMember({ ...newMember, name: e.target.value })}
+                      />
+                      <Input
+                        placeholder="Email"
+                        type="email"
+                        value={newMember.email}
+                        onChange={(e) => setNewMember({ ...newMember, email: e.target.value })}
+                      />
+                      <Button type="submit" className="w-full">Add Member</Button>
+                    </form>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <h2 className="text-xl font-semibold flex items-center"><Users className="mr-2" /> Member List</h2>
+                  </CardHeader>
+                  <CardContent>
+                    <ScrollArea className="h-[400px] w-full rounded-md border p-4">
+                      <div className="space-y-4">
+                        {members.map((member) => (
+                          <Card key={member.id} className="p-4">
+                            <h3 className="font-semibold text-lg">{member.name}</h3>
+                            <p className="text-sm text-muted-foreground">Email: {member.email}</p>
+                            <div className="flex justify-between items-center mt-2">
+                              <Badge variant={member.fine_amount > 0 ? "destructive" : "secondary"}>
+                                Fine: ${member.fine_amount}
+                              </Badge>
+                              <Button size="sm" variant="outline">View Borrowed Books</Button>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
