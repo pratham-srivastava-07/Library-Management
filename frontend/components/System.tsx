@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
-import { BookOpen, Users, PlusCircle, ArrowLeftRight } from 'lucide-react';
+import { BookOpen, Users, PlusCircle, ArrowLeftRight, Book } from 'lucide-react';
 
 // TypeScript interfaces
 interface Book {
@@ -231,7 +231,8 @@ const LibraryManagement: React.FC = () => {
       <Card className="max-w-6xl mx-auto shadow-lg">
         <CardHeader className="bg-primary text-primary-foreground p-6 rounded-t-lg">
           <h1 className="text-3xl font-bold flex items-center">
-            <BookOpen className="mr-2" /> Library Management System
+            <Book className="mr-2" /> Library Management System
+            {/* <Book /> */}
           </h1>
         </CardHeader>
         <CardContent className="p-6">
@@ -291,7 +292,7 @@ const LibraryManagement: React.FC = () => {
                             <h3 className="font-semibold text-lg">{book.title}</h3>
                             <p className="text-sm text-muted-foreground">Author: {book.author}</p>
                             <div className="flex justify-between items-center mt-2">
-                              <Badge variant={book.available_copies > 0 ? "success" : "destructive"}>
+                              <Badge variant={book.available_copies > 0 ? "outline" : "destructive"}>
                                 Available: {book.available_copies}/{book.total_copies}
                               </Badge>
                               <div>
