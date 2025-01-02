@@ -107,6 +107,9 @@ const LibraryManagement: React.FC = () => {
   const [newMember, setNewMember] = useState<MemberData>({ name: '', email: '' });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [transactionType, setTransactionType] = useState<'borrow' | 'return' | null>(null);
 
   useEffect(() => {
     const loadData = async () => {
@@ -144,15 +147,83 @@ const LibraryManagement: React.FC = () => {
   };
 
   const handleBorrow = async (bookId: number, memberId: number) => {
-    await borrowBook(bookId, memberId);
-    const updatedBooks = await fetchBooks();
-    setBooks(updatedBooks);
+    try {
+      await borrowBook(bookId, memberId);
+      const [updatedBooks, updatedMembers] = await Promise.all([fetchBooks(), fetchMembers()]);
+      setBooks(updatedBooks);
+      setMembers(updatedMembers);
+      setSelectedBook(null);
+      setSelectedMember(null);
+      setTransactionType(null);
+    } catch (error) {
+      console.error('Error borrowing book:', error);
+      setError('Failed to borrow book. Please try again.');
+    }
   };
 
   const handleReturn = async (bookId: number, memberId: number) => {
-    await returnBook(bookId, memberId);
-    const updatedBooks = await fetchBooks();
-    setBooks(updatedBooks);
+    try {
+      const result = await returnBook(bookId, memberId);
+      const [updatedBooks, updatedMembers] = await Promise.all([fetchBooks(), fetchMembers()]);
+      setBooks(updatedBooks);
+      setMembers(updatedMembers);
+      setSelectedBook(null);
+      setSelectedMember(null);
+      setTransactionType(null);
+      if (result.fineAmount > 0) {
+        setError(`Book returned successfully. Fine amount: $${result.fineAmount}`);
+      }
+    } catch (error) {
+      console.error('Error returning book:', error);
+      setError('Failed to return book. Please try again.');
+    }
+  };
+
+  const BookTransaction: React.FC = () => {
+    if (!selectedBook || !transactionType) return null;
+
+    return (
+      <Card className="mt-4">
+        <CardHeader>
+          <h3 className="text-lg font-semibold">
+            {transactionType === 'borrow' ? 'Borrow Book' : 'Return Book'}
+          </h3>
+        </CardHeader>
+        <CardContent>
+          <p>Selected Book: {selectedBook.title}</p>
+          <select
+            className="mt-2 w-full p-2 border rounded"
+            value={selectedMember ? selectedMember.id : ''}
+            onChange={(e) => {
+              const member = members.find(m => m.id === parseInt(e.target.value));
+              setSelectedMember(member || null);
+            }}
+          >
+            <option value="">Select a member</option>
+            {members.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.name}
+              </option>
+            ))}
+          </select>
+          <Button
+            className="mt-4 w-full"
+            onClick={() => {
+              if (selectedMember) {
+                if (transactionType === 'borrow') {
+                  handleBorrow(selectedBook.book_id, selectedMember.id);
+                } else {
+                  handleReturn(selectedBook.book_id, selectedMember.id);
+                }
+              }
+            }}
+            disabled={!selectedMember}
+          >
+            {transactionType === 'borrow' ? 'Confirm Borrow' : 'Confirm Return'}
+          </Button>
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
@@ -223,9 +294,31 @@ const LibraryManagement: React.FC = () => {
                               <Badge variant={book.available_copies > 0 ? "success" : "destructive"}>
                                 Available: {book.available_copies}/{book.total_copies}
                               </Badge>
-                              <Button size="sm" variant="outline" className="flex items-center">
-                                <ArrowLeftRight className="mr-2 h-4 w-4" /> Borrow/Return
-                              </Button>
+                              <div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="mr-2"
+                                  onClick={() => {
+                                    setSelectedBook(book);
+                                    setTransactionType('borrow');
+                                  }}
+                                  disabled={book.available_copies === 0}
+                                >
+                                  Borrow
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setSelectedBook(book);
+                                    setTransactionType('return');
+                                  }}
+                                  disabled={book.available_copies === book.total_copies}
+                                >
+                                  Return
+                                </Button>
+                              </div>
                             </div>
                           </Card>
                         ))}
@@ -233,6 +326,7 @@ const LibraryManagement: React.FC = () => {
                     </ScrollArea>
                   </CardContent>
                 </Card>
+                <BookTransaction />
               </TabsContent>
 
               <TabsContent value="members" className="space-y-6">
@@ -271,9 +365,17 @@ const LibraryManagement: React.FC = () => {
                             <p className="text-sm text-muted-foreground">Email: {member.email}</p>
                             <div className="flex justify-between items-center mt-2">
                               <Badge variant={member.fine_amount > 0 ? "destructive" : "secondary"}>
-                                Fine: ${member.fine_amount}
+                                Fine: ${member.fine_amount.toFixed(2)}
                               </Badge>
-                              <Button size="sm" variant="outline">View Borrowed Books</Button>
+                            </div>
+                            <div className="mt-2">
+                              <h4 className="font-semibold">Borrowed Books:</h4>
+                              <ul className="list-disc list-inside">
+                                {member.borrowed_books.map((bookId) => {
+                                  const book = books.find(b => b.book_id === bookId);
+                                  return book ? <li key={bookId}>{book.title}</li> : null;
+                                })}
+                              </ul>
                             </div>
                           </Card>
                         ))}
